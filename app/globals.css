@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --matcha-50:   #f2f7ed;
+  --matcha-100:  #e2efd8;
+  --matcha-200:  #c5dfb1;
+  --matcha-300:  #9ec87f;
+  --matcha-400:  #7aaf56;
+  --matcha-500:  #5c913c;
+  --matcha-600:  #47732e;
+  --cream:       #FDFAF4;
+  --ivory:       #F7F3EA;
+  --parchment:   #EDE8D9;
+  --blush:       #F2A8B8;
+  --rose:        #E8879C;
+  --peach:       #F5C5A3;
+  --gold:        #D4AF6A;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--cream);
+  color: #2a2a2a;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--matcha-50); }
+::-webkit-scrollbar-thumb { background: var(--matcha-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--matcha-400); }
+
+/* ── Selection ── */
+::selection { background: var(--matcha-200); }
+
+/* ── Noise grain overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* ── Glass ── */
+.glass {
+  background: rgba(253,250,244,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.6);
+}
+.glass-dark {
+  background: rgba(30,45,25,0.70);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.glass-matcha {
+  background: rgba(197,223,177,0.18);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(197,223,177,0.35);
+}
+
+/* ── Camera mirroring ── */
+video { transform: scaleX(-1); }
+
+/* ── Countdown pop ── */
+@keyframes countdownPop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.countdown-pop { animation: countdownPop 0.35s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+
+/* ── Flash ── */
+@keyframes flashEffect {
+  0%   { opacity: 0; }
+  30%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.flash { animation: flashEffect 0.35s ease-out forwards; }
+
+/* ── Stagger children ── */
+.stagger > *         { opacity: 0; animation: fadeUp 0.6s ease-out forwards; }
+.stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger > *:nth-child(2) { animation-delay: 0.12s; }
+.stagger > *:nth-child(3) { animation-delay: 0.19s; }
+.stagger > *:nth-child(4) { animation-delay: 0.26s; }
+.stagger > *:nth-child(5) { animation-delay: 0.33s; }
+.stagger > *:nth-child(6) { animation-delay: 0.40s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Marquee ── */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 22s linear infinite;
+}
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Photo strip shadow ── */
+.strip-shadow {
+  filter: drop-shadow(0 20px 50px rgba(0,0,0,0.22));
+}
+
+/* ── Shimmer skeleton ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #e2efd8 25%, #f2f7ed 50%, #e2efd8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Button ── */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 font-body font-medium
+         bg-matcha-500 hover:bg-matcha-600 text-white
+         px-7 py-3.5 rounded-full transition-all duration-200
+         shadow-matcha hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+}
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 font-body font-medium
+         border border-matcha-400 text-matcha-600 hover:bg-matcha-50
+         px-7 py-3.5 rounded-full transition-all duration-200;
+}
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 font-body font-medium
+         text-matcha-600 hover:text-matcha-800 hover:bg-matcha-50
+         px-5 py-2.5 rounded-full transition-all duration-200;
+}
+
+/* ── Card ── */
+.card {
+  @apply bg-white rounded-3xl shadow-card hover:shadow-hover transition-all duration-300;
+}
+
+/* ── Input ── */
+.input {
+  @apply w-full px-4 py-3 rounded-2xl border border-parchment bg-white
+         text-sm font-body text-gray-700 placeholder-gray-400
+         focus:outline-none focus:border-matcha-400 focus:ring-2 focus:ring-matcha-100
+         transition-all duration-200;
+}
+
+/* ── Progress bar fill ── */
+.progress-fill {
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Divider ornament ── */
+.ornament {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--matcha-400);
+  font-size: 18px;
+}
+.ornament::before,
+.ornament::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--matcha-200), transparent);
+}
