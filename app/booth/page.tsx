@@ -21,18 +21,18 @@ export default function BoothPage() {
   const canvasRef  = useRef<HTMLCanvasElement>(null)
   const streamRef  = useRef<MediaStream | null>(null)
 
-  const[frame, setFrame]         = useState<Frame | null>(null)
-  const [state, setState]         = useState<State>('scanning')
-  const [countdown, setCountdown] = useState(3)
+  const [frame, setFrame]          = useState<Frame | null>(null)
+  const [state, setState]          = useState<State>('scanning')
+  const[countdown, setCountdown]  = useState(3)
   
-  const [photos, setPhotos]       = useState<(string | null)[]>([])
-  const [curIdx, setCurIdx]       = useState(0)
-  const[totalHoles, setTotalHoles] = useState(3) // Jumlah foto akan dinamis
+  const [photos, setPhotos]        = useState<(string | null)[]>([])
+  const [curIdx, setCurIdx]        = useState(0)
+  const [totalHoles, setTotalHoles] = useState(3) 
   
-  const[flash, setFlash]         = useState(false)
-  const [camFacing, setCamFacing] = useState<'user' | 'environment'>('user')
-  const [activeFilter, setFilter] = useState<string>('Normal')
-  const [isMirrored, setIsMirrored] = useState(true) 
+  const[flash, setFlash]          = useState(false)
+  const[camFacing, setCamFacing]  = useState<'user' | 'environment'>('user')
+  const[activeFilter, setFilter]  = useState<string>('Normal')
+  const [isMirrored, setIsMirrored]= useState(true) 
 
   const filledCount = photos.filter(p => p !== null).length
 
@@ -42,7 +42,7 @@ export default function BoothPage() {
     img.crossOrigin = 'anonymous';
     await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = imageUrl; });
 
-    const SCAN_W = 400; // Resolusi kecil agar scan secepat kilat (milidetik)
+    const SCAN_W = 400; 
     const SCAN_H = Math.floor(SCAN_W * (img.height / img.width));
 
     const canvas = document.createElement('canvas');
@@ -54,7 +54,6 @@ export default function BoothPage() {
     const visited = new Uint8Array(SCAN_W * SCAN_H);
     const holes =[];
 
-    // Menggunakan antrian (queue) memori ultra-cepat untuk pemetaan
     const queue = new Int32Array(SCAN_W * SCAN_H);
 
     for (let y = 0; y < SCAN_H; y++) {
@@ -62,7 +61,6 @@ export default function BoothPage() {
         const i = y * SCAN_W + x;
         if (visited[i]) continue;
 
-        // Jika menemukan pixel transparan (Alpha < 128)
         if (imgData[i * 4 + 3] < 128) {
           let minX = x, maxX = x, minY = y, maxY = y;
           let head = 0, tail = 0;
@@ -71,7 +69,6 @@ export default function BoothPage() {
           queue[tail++] = i;
           visited[i] = 1;
 
-          // Perluas area (Flood Fill) ke semua pixel transparan yang menyentuh pixel ini
           while (head < tail) {
             const curr = queue[head++];
             const cx = curr % SCAN_W;
@@ -83,15 +80,12 @@ export default function BoothPage() {
             if (cy < minY) minY = cy;
             if (cy > maxY) maxY = cy;
 
-            // Cek 4 arah tetangga (Atas, Bawah, Kiri, Kanan)
             if (cx > 0) { const ni = curr - 1; if (!visited[ni] && imgData[ni * 4 + 3] < 128) { visited[ni] = 1; queue[tail++] = ni; } }
             if (cx < SCAN_W - 1) { const ni = curr + 1; if (!visited[ni] && imgData[ni * 4 + 3] < 128) { visited[ni] = 1; queue[tail++] = ni; } }
             if (cy > 0) { const ni = curr - SCAN_W; if (!visited[ni] && imgData[ni * 4 + 3] < 128) { visited[ni] = 1; queue[tail++] = ni; } }
             if (cy < SCAN_H - 1) { const ni = curr + SCAN_W; if (!visited[ni] && imgData[ni * 4 + 3] < 128) { visited[ni] = 1; queue[tail++] = ni; } }
           }
 
-          // Jika areanya besar (bukan noise/titik kecil), simpan sebagai Lubang Foto!
-          // Kami simpan dalam bentuk PERSENTASE (0.0 - 1.0) agar resolusi independent
           if (area > 200) {
             holes.push({ x: minX / SCAN_W, y: minY / SCAN_H, w: (maxX - minX) / SCAN_W, h: (maxY - minY) / SCAN_H });
           }
@@ -101,7 +95,6 @@ export default function BoothPage() {
       }
     }
 
-    // Urutkan lubang dari Atas ke Bawah, Kiri ke Kanan
     holes.sort((a, b) => {
       if (Math.abs(a.y - b.y) < 0.05) return a.x - b.x;
       return a.y - b.y;
@@ -119,7 +112,6 @@ export default function BoothPage() {
       setFrame(parsedFrame)
       setState('scanning')
 
-      // MATA ROBOT BEKERJA: Scan frame untuk menemukan jumlah lubang!
       let detectedHoles: any[] =[];
       if (parsedFrame.image_url) {
         try {
@@ -127,14 +119,10 @@ export default function BoothPage() {
         } catch (e) { console.error("Scan gagal, fallback ke default", e) }
       }
 
-      // Tentukan total lubang. Jika gagal scan, ambil dari database.
       const finalTotal = detectedHoles.length > 0 ? detectedHoles.length : (parseInt(parsedFrame.type) || 3)
       setTotalHoles(finalTotal)
-
-      // Simpan data lubang ke memori agar halaman Preview tidak usah mikir lagi
       sessionStorage.setItem('frame_holes', JSON.stringify(detectedHoles))
 
-      // Cek apakah user sedang retake
       const existing = sessionStorage.getItem('booth_photos')
       const retakeIdx = sessionStorage.getItem('retake_idx')
       let initialPhotos = Array(finalTotal).fill(null)
@@ -150,7 +138,6 @@ export default function BoothPage() {
         sessionStorage.removeItem('retake_idx')
       }
 
-      // Setelah hitung-hitungan selesai, nyalakan kamera!
       startCamera()
     }
     
@@ -158,7 +145,6 @@ export default function BoothPage() {
   }, [router])
 
   useEffect(() => {
-    // Re-start kamera jika kamera di balik (Flip)
     if (state !== 'scanning' && frame) {
       startCamera()
     }
@@ -230,7 +216,7 @@ export default function BoothPage() {
           
           const p = capture()
           if (p) {
-            const newPhotos =[...photos]
+            const newPhotos = [...photos]
             newPhotos[curIdx] = p 
             setPhotos(newPhotos)
 
@@ -243,12 +229,14 @@ export default function BoothPage() {
               setCurIdx(nextEmpty)
               setState('ready')
             }
+          } else {
+            setState('ready') // Fallback jika capture gagal
           }
         }, 300)
       }
     }
     setTimeout(tick, 1000)
-  },[capture, state, curIdx, photos])
+  }, [capture, state, curIdx, photos])
 
   const handleRetakeAll = () => {
     setPhotos(Array(totalHoles).fill(null))
@@ -266,7 +254,6 @@ export default function BoothPage() {
 
   if (!frame) return null
 
-  // TAMPILAN LOADING SAAT SCANNER BEKERJA
   if (state === 'scanning') {
     return (
       <main className="min-h-screen bg-cream flex flex-col items-center justify-center font-body text-matcha-700">
@@ -397,14 +384,14 @@ export default function BoothPage() {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Captured Frame</p>
                 <p className="text-[10px] text-gray-400 italic">Click photo to retake</p>
               </div>
-              {/* Grid Otomatis Menyesuaikan Jumlah Foto! */}
               <div className={`grid gap-2 ${totalHoles > 4 ? 'grid-cols-2' : 'grid-cols-1'} bg-gray-50 p-4 rounded-2xl border border-gray-100`}>
                 
                 {photos.map((p, i) => (
                   <div 
                     key={i} 
                     onClick={() => {
-                      if (state !== 'countdown' && state !== 'loading' && state !== 'scanning') {
+                      // DI SINI ERRORNYA BERASAL: pengecekan state !== 'scanning' dihapus
+                      if (state !== 'countdown' && state !== 'loading') {
                         setCurIdx(i);
                         if (state === 'done') setState('ready');
                       }
@@ -445,7 +432,8 @@ export default function BoothPage() {
                 className={`w-full flex items-center justify-center gap-2 py-4 rounded-full font-medium text-base transition-all duration-300 active:scale-95 ${state === 'ready' ? 'bg-matcha-500 hover:bg-matcha-600 text-white shadow-matcha' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
               >
                 <Camera className="w-5 h-5" />
-                {state === 'loading' || state === 'scanning' ? 'Initializing…' 
+                {/* DI SINI JUGA DIHAPUS: pengecekan state === 'scanning' */}
+                {state === 'loading' ? 'Initializing…' 
                   : state === 'countdown' ? 'Get Ready!' 
                   : photos[curIdx] ? `Retake Photo ${curIdx + 1}` : `Take Photo ${curIdx + 1}`}
               </button>
