@@ -82,7 +82,7 @@ export default function ChooseLayoutPage() {
             back
           </a>
           <span className="font-display text-2xl font-semibold text-matcha-700 tracking-tight">
-            idadari<span className="text-matcha-400">.</span>
+            idaadarii<span className="text-matcha-400">.</span>
           </span>
           <div className="w-20" />
         </div>
@@ -306,7 +306,7 @@ function FramePlaceholder({ type, name }: { type: string; name: string }) {
           <div key={i} className="rounded-md" style={{ background: shades[i % shades.length] }} />
         ))}
       </div>
-      <p className="text-center font-mono text-[8px] text-matcha-400 tracking-widest pb-1">IDADARI</p>
+      <p className="text-center font-mono text-[8px] text-matcha-400 tracking-widest pb-1">IDAADARII</p>
     </div>
   )
 }

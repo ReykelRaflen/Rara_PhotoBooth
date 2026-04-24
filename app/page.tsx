@@ -16,7 +16,7 @@ const MARQUEE_ITEMS = [
   '♡ cherish the magic',
   '✦ relive the love',
   '♡ pose & play',
-  '✦ made for idadari',
+  '✦ made for idaadarii',
   '♡ every click counts',
 ]
 
@@ -76,7 +76,7 @@ export default function HomePage() {
       <nav className="glass border-b border-white/60 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <span className="font-display text-2xl font-semibold text-matcha-700 tracking-tight">
-            idadari<span className="text-matcha-400">.</span>
+            idaadarii<span className="text-matcha-400">.</span>
           </span>
           <div className="hidden md:flex items-center gap-8">
             {['home', 'layouts', 'gallery'].map(item => (
@@ -141,7 +141,7 @@ export default function HomePage() {
 
           {/* Headline */}
           <h1 className="font-display text-[clamp(3.5rem,10vw,7rem)] font-light leading-none text-gray-800 tracking-tight mb-2">
-            idadari
+            idaadarii
           </h1>
           <h2 className="font-display text-[clamp(2rem,6vw,4rem)] font-light italic text-matcha-500 leading-none mb-8">
             photobooth
@@ -177,7 +177,7 @@ export default function HomePage() {
       {/* ── Bottom ornament ── */}
       <div className="pb-8 text-center">
         <p className="font-display italic text-matcha-400 text-sm">
-          made for idadari
+          made for idaadarii
         </p>
       </div>
 
@@ -209,7 +209,7 @@ function PlaceholderStrip({ count, rotate }: { count: number; rotate: string }) 
         />
       ))}
       <div className="pt-2 text-center">
-        <p className="font-mono text-[8px] text-matcha-400 tracking-widest">IDADARI</p>
+        <p className="font-mono text-[8px] text-matcha-400 tracking-widest">IDAADARII</p>
       </div>
     </div>
   )

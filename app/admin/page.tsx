@@ -56,7 +56,7 @@ export default function AdminPage() {
             <Leaf className="w-8 h-8 text-white" />
           </div>
           <h1 className="font-display text-4xl font-light text-matcha-700 mb-1">Admin Panel</h1>
-          <p className="font-body text-sm text-gray-400">Idadari&rsquo;s Photobooth</p>
+          <p className="font-body text-sm text-gray-400">Idaadarii&rsquo;s Photobooth</p>
         </div>
 
         <div className="card p-8">

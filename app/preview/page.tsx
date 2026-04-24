@@ -2,31 +2,25 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Download, RotateCcw, Home, Check, Layout, Grid } from 'lucide-react'
+import { Download, RotateCcw, Home, Check } from 'lucide-react'
 import { Frame } from '@/lib/supabase'
-
-type LayoutType = 'vertical' | 'grid'
 
 export default function PreviewPage() {
   const router = useRouter()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const [frame, setFrame]       = useState<Frame | null>(null)
-  const[photos, setPhotos]     = useState<string[]>([])
+  const [photos, setPhotos]     = useState<string[]>([])
   const [stripUrl, setStripUrl] = useState<string | null>(null)
   const [generating, setGen]    = useState(true)
-  const [layout, setLayout]     = useState<LayoutType>('vertical')
-  const[downloaded, setDl]     = useState(false)
+  const [downloaded, setDl]     = useState(false)
 
   useEffect(() => {
     const f = sessionStorage.getItem('selected_frame')
     const p = sessionStorage.getItem('booth_photos')
     if (!f || !p) { router.push('/'); return }
-    const frameData  = JSON.parse(f) as Frame
-    const photosData = JSON.parse(p) as string[]
-    setFrame(frameData)
-    setPhotos(photosData)
-    setLayout(photosData.length >= 6 ? 'grid' : 'vertical')
+    setFrame(JSON.parse(f))
+    setPhotos(JSON.parse(p))
   }, [router])
 
   const generate = useCallback(async () => {
@@ -47,96 +41,47 @@ export default function PreviewPage() {
         fImg = await load(frame.image_url)
       }
 
+      // Ukuran Dasar Canvas
       const BASE_W = 600; 
       const BASE_H = fImg ? (BASE_W * (fImg.height / fImg.width)) : 1800; 
       const FOOTER = 100;
 
-      const cols = layout === 'grid' && photos.length === 6 ? 2 : 1;
-      canvas.width  = BASE_W * cols;
+      // Tidak ada lagi logika Grid x2! Canvas 100% mengikuti rasio lebar x tinggi gambar asli.
+      canvas.width  = BASE_W;
       canvas.height = BASE_H + FOOTER;
       const W = canvas.width, H = canvas.height;
 
       ctx.fillStyle = '#FDFAF4'; 
       ctx.fillRect(0, 0, W, H);
 
-      let rawHoles: { minX: number, maxX: number, minY: number, maxY: number }[] =[];
+      // AMBIL HASIL SCAN LUBANG DARI MEMORI (Jadi tidak perlu rontgen ulang!)
+      const savedHoles = sessionStorage.getItem('frame_holes')
       let detectedHoles: { x: number, y: number, w: number, h: number }[] =[];
-
-      if (fImg) {
-        const tempC = document.createElement('canvas');
-        tempC.width = BASE_W; tempC.height = BASE_H;
-        const tCtx = tempC.getContext('2d', { willReadFrequently: true })!;
-        tCtx.drawImage(fImg, 0, 0, BASE_W, BASE_H);
-        
-        const imgData = tCtx.getImageData(0, 0, BASE_W, BASE_H).data;
-        const rowData =[];
-
-        for (let y = 0; y < BASE_H; y++) {
-          let transCount = 0;
-          let minX = BASE_W, maxX = 0;
-          for (let x = 0; x < BASE_W; x++) {
-            if (imgData[(y * BASE_W + x) * 4 + 3] < 128) {
-              transCount++;
-              if (x < minX) minX = x;
-              if (x > maxX) maxX = x;
-            }
-          }
-          rowData.push({ transCount, minX, maxX });
-        }
-
-        let inHole = false;
-        let curHole: any = null;
-
-        for (let y = 0; y < BASE_H; y++) {
-          if (rowData[y].transCount > 5) {
-            if (!inHole) {
-              inHole = true;
-              curHole = { minY: y, maxY: y, minX: rowData[y].minX, maxX: rowData[y].maxX };
-            } else {
-              curHole.maxY = y;
-              if (rowData[y].minX < curHole.minX) curHole.minX = rowData[y].minX;
-              if (rowData[y].maxX > curHole.maxX) curHole.maxX = rowData[y].maxX;
-            }
-          } else {
-            if (inHole) {
-              inHole = false;
-              rawHoles.push(curHole);
-            }
-          }
-        }
-        if (inHole) rawHoles.push(curHole);
-
-        detectedHoles = rawHoles
-          .filter(h => (h.maxY - h.minY) > (BASE_H * 0.05)) 
-          .map(h => {
-            const bleed = 5; 
-            return {
-              x: Math.max(0, h.minX - bleed),
-              y: Math.max(0, h.minY - bleed),
-              w: (h.maxX - h.minX) + (bleed * 2),
-              h: (h.maxY - h.minY) + (bleed * 2)
-            };
-          });
+      
+      if (savedHoles) {
+        detectedHoles = JSON.parse(savedHoles)
       }
 
+      // 3. GAMBAR FOTO TEPAT DI LUBANGNYA (Sesuai persentase koordinat)
       imgs.forEach((img, i) => {
-        const col = cols === 2 ? i % 2 : 0;
-        const row = cols === 2 ? Math.floor(i / 2) : i; 
+        // Jika ada foto berlebih tapi lubang habis, stop menggambar
+        if (i >= detectedHoles.length) return;
 
-        let hx = 0, hy = 0, hw = 0, hh = 0;
-
-        if (detectedHoles.length > 0) {
-          const hole = detectedHoles[row] || detectedHoles[detectedHoles.length - 1];
-          hx = hole.x + (col * BASE_W);
-          hy = hole.y;
-          hw = hole.w;
-          hh = hole.h;
-        } else {
-          hw = BASE_W * 0.8; hh = (BASE_H / 3) * 0.8;
-          hx = (BASE_W * 0.1) + (col * BASE_W); hy = (BASE_H / 3) * row + 50;
-        }
+        const hole = detectedHoles[i];
+        
+        // Konversi persentase ke pixel nyata
+        let hx = hole.x * BASE_W;
+        let hy = hole.y * BASE_H;
+        let hw = hole.w * BASE_W;
+        let hh = hole.h * BASE_H;
+        
+        // Beri sedikit Bleed (pelebaran) agar foto pasti bersembunyi di bawah bingkai
+        const bleed = 8;
+        hx -= bleed; hy -= bleed; hw += (bleed * 2); hh += (bleed * 2);
 
         ctx.save();
+        
+        // MENCEGAH MELUBER
         ctx.beginPath();
         ctx.rect(hx, hy, hw, hh);
         ctx.clip(); 
@@ -146,15 +91,16 @@ export default function PreviewPage() {
 
         ctx.translate(hx + hw / 2, hy + hh / 2);
         ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
+        
         ctx.restore(); 
       })
 
+      // 4. OVERLAY FRAME SANGAT PRESISI
       if (fImg) {
-        for (let c = 0; c < cols; c++) {
-          ctx.drawImage(fImg, c * BASE_W, 0, BASE_W, BASE_H);
-        }
+        ctx.drawImage(fImg, 0, 0, BASE_W, BASE_H);
       }
 
+      // 5. FOOTER
       const fy = BASE_H;
       ctx.fillStyle = '#FDFAF4'; ctx.fillRect(0, fy, W, FOOTER);
       
@@ -171,9 +117,9 @@ export default function PreviewPage() {
 
     setStripUrl(canvas.toDataURL('image/jpeg', 0.98))
     setGen(false)
-  }, [frame, photos, layout])
+  }, [frame, photos]) // Ketergantungan layout dihapus
 
-  useEffect(() => { if (frame && photos.length > 0) generate() },[frame, photos, layout, generate])
+  useEffect(() => { if (frame && photos.length > 0) generate() },[frame, photos, generate])
 
   const download = () => {
     if (!stripUrl) return
@@ -196,21 +142,6 @@ export default function PreviewPage() {
             <div className="text-center mb-6 stagger">
               <h1 className="font-display text-4xl font-light text-gray-800 mb-1">Your photostrip is ready ✨</h1>
             </div>
-
-            {photos.length === 6 && (
-              <div className="flex gap-2 justify-center mb-5">
-                {(['vertical', 'grid'] as const).map(l => (
-                  <button
-                    key={l} onClick={() => setLayout(l)}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-body font-medium transition-all
-                      ${layout === l ? 'bg-matcha-500 text-white' : 'bg-white text-gray-500 border border-parchment hover:border-matcha-300'}`}
-                  >
-                    {l === 'vertical' ? <Layout className="w-3.5 h-3.5" /> : <Grid className="w-3.5 h-3.5" />}
-                    {l === 'vertical' ? 'Vertical Strip' : '2×3 Grid'}
-                  </button>
-                ))}
-              </div>
-            )}
             
             <div className="rounded-xl overflow-hidden shadow-2xl bg-white flex items-center justify-center p-4 min-h-[70vh] w-full max-w-[500px]">
               {generating ? (
@@ -231,11 +162,10 @@ export default function PreviewPage() {
                 <p className="font-body text-xs font-medium text-gray-400 uppercase tracking-widest">Individual Photos</p>
                 <p className="text-[10px] text-matcha-500 italic">Click to retake</p>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className={`grid gap-2 ${photos.length > 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 {photos.map((p, i) => (
                   <div 
                     key={i} 
-                    // FUNGSI RETAKE INDIVIDUAL: Simpan nomor slot, lalu lempar ke halaman Booth!
                     onClick={() => {
                       sessionStorage.setItem('retake_idx', i.toString());
                       router.push('/booth');

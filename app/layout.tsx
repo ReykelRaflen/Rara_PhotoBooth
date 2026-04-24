@@ -23,10 +23,10 @@ const dmMono = DM_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Idadari's Photobooth 🌿",
-  description: 'Capture the moment, cherish the magic — a photobooth made with love for Idadari.',
+  title: "Idaadarii's Photobooth 🌿",
+  description: 'Capture the moment, cherish the magic — a photobooth made with love for Idaadarii.',
   openGraph: {
-    title: "Idadari's Photobooth",
+    title: "Idaadarii's Photobooth",
     description: 'Capture the moment, cherish the magic.',
     type: 'website',
   },
