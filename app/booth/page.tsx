@@ -25,7 +25,7 @@ export default function BoothPage() {
   const chunksRef   = useRef<Blob[]>([])
 
   const [frame, setFrame]          = useState<Frame | null>(null)
-  const[state, setState]          = useState<State>('scanning')
+  const [state, setState]          = useState<State>('scanning')
   const [countdown, setCountdown]  = useState(5)
   
   const [photos, setPhotos]        = useState<(string | null)[]>([])
@@ -36,12 +36,11 @@ export default function BoothPage() {
   const [flash, setFlash]          = useState(false)
   const [camFacing, setCamFacing]  = useState<'user' | 'environment'>('user')
   const [activeFilter, setFilter]  = useState<string>('Normal')
-  const [isMirrored, setIsMirrored]= useState(true) 
-  const[useLivePhoto, setUseLivePhoto] = useState(true)
+  const[isMirrored, setIsMirrored]= useState(true) 
+  const [useLivePhoto, setUseLivePhoto] = useState(true)
 
   const filledCount = photos.filter(p => p !== null).length
 
-  // 🚀 PERBAIKAN SENSITIVITAS SCANNER
   const scanFrame = async (imageUrl: string) => {
     const img = new Image(); img.crossOrigin = 'anonymous';
     await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = imageUrl; });
@@ -67,12 +66,8 @@ export default function BoothPage() {
             if (cy > 0) { const ni = curr - SCAN_W; if (!visited[ni] && imgData[ni * 4 + 3] < 128) { visited[ni] = 1; queue[tail++] = ni; } }
             if (cy < SCAN_H - 1) { const ni = curr + SCAN_W; if (!visited[ni] && imgData[ni * 4 + 3] < 128) { visited[ni] = 1; queue[tail++] = ni; } }
           }
-          
           const boxW = maxX - minX;
           const boxH = maxY - minY;
-          
-          // 🔥 PERBAIKAN: Abaikan lubang palsu (noise/hiasan transparan kecil).
-          // Lubang foto asli ukurannya pasti lebih dari 5% tinggi frame dan lebih dari 10% lebar frame!
           if (area > 2000 && boxH > (SCAN_H * 0.05) && boxW > (SCAN_W * 0.1)) {
             holes.push({ x: minX / SCAN_W, y: minY / SCAN_H, w: boxW / SCAN_W, h: boxH / SCAN_H });
           }
@@ -123,7 +118,7 @@ export default function BoothPage() {
       startCamera()
     }
     init()
-  }, [router])
+  },[router])
 
   useEffect(() => {
     if (state !== 'scanning' && frame) startCamera()
@@ -248,6 +243,7 @@ export default function BoothPage() {
       <main className="min-h-screen bg-cream flex flex-col items-center justify-center font-body text-matcha-700">
         <Loader2 className="w-12 h-12 animate-spin mb-4 text-matcha-500" />
         <h2 className="text-2xl font-display font-medium mb-2">Analyzing Frame Layout...</h2>
+        <p className="text-gray-500 text-sm">Our AI is detecting the photo slots for you ✨</p>
       </main>
     )
   }
@@ -337,7 +333,13 @@ export default function BoothPage() {
                 {photos.map((p, i) => (
                   <div 
                     key={i} 
-                    onClick={() => { if (state !== 'countdown' && state !== 'loading' && state !== 'scanning') { setCurIdx(i); if (state === 'done') setState('ready'); } }}
+                    onClick={() => { 
+                      // 🚀 DI SINI SUDAH SAYA PERBAIKI: Tidak ada lagi `state !== 'scanning'`
+                      if (state !== 'countdown' && state !== 'loading') { 
+                        setCurIdx(i); 
+                        if (state === 'done') setState('ready'); 
+                      } 
+                    }}
                     className={`w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 relative transition-all duration-300 shadow-sm cursor-pointer group
                       ${i === curIdx ? 'ring-4 ring-matcha-500 ring-offset-2' : p ? 'ring-1 ring-gray-300 hover:ring-matcha-300' : 'border-2 border-dashed border-gray-300 hover:border-matcha-400'}
                       ${i === curIdx && state === 'countdown' ? 'ring-4 ring-red-300 animate-pulse' : ''}`}
@@ -374,7 +376,8 @@ export default function BoothPage() {
                 className={`w-full flex items-center justify-center gap-2 py-4 rounded-full font-medium text-base transition-all duration-300 active:scale-95 ${state === 'ready' ? 'bg-matcha-500 hover:bg-matcha-600 text-white shadow-matcha' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
               >
                 <Camera className="w-5 h-5" />
-                {state === 'loading' || state === 'scanning' ? 'Initializing…' : state === 'countdown' ? 'Get Ready!' : photos[curIdx] ? `Retake Photo ${curIdx + 1}` : `Take Photo ${curIdx + 1}`}
+                {/* 🚀 DI SINI JUGA SUDAH SAYA PERBAIKI: Tidak ada lagi `state === 'scanning'` */}
+                {state === 'loading' ? 'Initializing…' : state === 'countdown' ? 'Get Ready!' : photos[curIdx] ? `Retake Photo ${curIdx + 1}` : `Take Photo ${curIdx + 1}`}
               </button>
             )}
           </div>

@@ -13,17 +13,17 @@ export default function PreviewPage() {
 
   const [frame, setFrame]       = useState<Frame | null>(null)
   const [photos, setPhotos]     = useState<string[]>([])
-  const [videos, setVideos]     = useState<(string | null)[]>([])
-  const [isMirrored, setIsMirrored] = useState(true)
+  const[videos, setVideos]     = useState<(string | null)[]>([])
+  const[isMirrored, setIsMirrored] = useState(true)
   const [hasLivePhoto, setHasLivePhoto] = useState(false)
 
   const [stripUrl, setStripUrl] = useState<string | null>(null)
   const [generating, setGen]    = useState(true)
   const [downloadedJPG, setDlJPG] = useState(false)
-  const[downloadedVid, setDlVid] = useState(false)
+  const [downloadedVid, setDlVid] = useState(false)
   
   const [isGeneratingGif, setIsGeneratingGif] = useState(false)
-  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false)
+  const[isGeneratingVideo, setIsGeneratingVideo] = useState(false)
   const [showQR, setShowQR] = useState(false)
 
   useEffect(() => {
@@ -40,7 +40,6 @@ export default function PreviewPage() {
     if (v) {
       const parsedV = JSON.parse(v);
       setVideos(parsedV);
-      // Cek apakah minimal ada 1 video yang berhasil terekam
       if (parsedV.some((vid: string | null) => vid !== null)) setHasLivePhoto(true);
     }
     if (m) setIsMirrored(m === 'true')
@@ -113,20 +112,17 @@ export default function PreviewPage() {
 
   useEffect(() => { if (frame && photos.length > 0) generate() },[frame, photos, generate])
 
-  // --- ACTIONS ---
   const downloadJPG = () => {
     if (!stripUrl) return
     const a = document.createElement('a'); a.href = stripUrl; a.download = `idadari-photobooth-${Date.now()}.jpg`; a.click()
     setDlJPG(true); setTimeout(() => setDlJPG(false), 3000)
   }
 
-  // 🪄 FUNGSI MAGIC: RENDER VIDEO DENGAN BINGKAI (LIVE FRAME)
   const downloadFramedVideo = async () => {
     if (!frame?.image_url || videos.length === 0) return;
     setIsGeneratingVideo(true);
 
     try {
-      // 1. Setup Canvas Gaib
       const tempCanvas = document.createElement('canvas');
       const BASE_W = 600;
       
@@ -138,11 +134,9 @@ export default function PreviewPage() {
       tempCanvas.width = BASE_W; tempCanvas.height = BASE_H + FOOTER;
       const tCtx = tempCanvas.getContext('2d')!;
 
-      // 2. Setup Data Lubang
       const savedHoles = sessionStorage.getItem('frame_holes');
       let detectedHoles: any[] = savedHoles ? JSON.parse(savedHoles) :[];
 
-      // 3. Setup Elemen Video Tersembunyi
       const vidElements: (HTMLVideoElement | HTMLImageElement | null)[] = await Promise.all(
         videos.map(async (url, i) => {
           if (url) {
@@ -151,7 +145,6 @@ export default function PreviewPage() {
             await v.play().catch(()=>console.log('Video play error'));
             return v;
           } else if (photos[i]) {
-            // Fallback: Jika slot ini tidak ada videonya, pakai JPG-nya
             const img = new Image(); img.crossOrigin = 'anonymous';
             await new Promise(r => { img.onload = r; img.src = photos[i] });
             return img;
@@ -160,14 +153,12 @@ export default function PreviewPage() {
         })
       );
 
-      // 4. Setup Perekam (MediaRecorder)
-      const stream = tempCanvas.captureStream(30); // 30 FPS
+      const stream = tempCanvas.captureStream(30); 
       const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
       const recorder = new MediaRecorder(stream, { mimeType });
       const chunks: Blob[] =[];
       recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data) };
 
-      // 5. Looping Render Frame-by-Frame
       let isRecording = true;
       const drawFrame = () => {
         if (!isRecording) return;
@@ -184,11 +175,10 @@ export default function PreviewPage() {
           tCtx.save();
           tCtx.beginPath(); tCtx.rect(hx, hy, hw, hh); tCtx.clip();
 
-          // Dapatkan dimensi asli media
           let mediaW = media instanceof HTMLVideoElement ? media.videoWidth : (media as HTMLImageElement).width;
           let mediaH = media instanceof HTMLVideoElement ? media.videoHeight : (media as HTMLImageElement).height;
           
-          if(mediaW === 0) mediaW = 1920; // Fallback safeguard
+          if(mediaW === 0) mediaW = 1920; 
           if(mediaH === 0) mediaH = 1080;
 
           const scale = Math.max(hw / mediaW, hh / mediaH);
@@ -201,7 +191,6 @@ export default function PreviewPage() {
           tCtx.restore();
         });
 
-        // Draw Frame & Footer
         tCtx.drawImage(fImg, 0, 0, BASE_W, BASE_H);
         const fy = BASE_H;
         tCtx.fillStyle = '#FDFAF4'; tCtx.fillRect(0, fy, tempCanvas.width, FOOTER);
@@ -213,15 +202,13 @@ export default function PreviewPage() {
       };
 
       recorder.start();
-      drawFrame(); // Mulai loop
+      drawFrame(); 
 
-      // Rekam selama 3.5 detik lalu stop
       setTimeout(() => {
         isRecording = false;
         recorder.stop();
         
         recorder.onstop = () => {
-          // Hentikan semua elemen video tersembunyi
           vidElements.forEach(v => { if (v instanceof HTMLVideoElement) { v.pause(); v.src = ''; v.load(); } });
           
           const blob = new Blob(chunks, { type: mimeType });
@@ -269,7 +256,6 @@ export default function PreviewPage() {
 
   return (
     <main className="min-h-screen bg-cream relative">
-      {/* MODAL QR CODE */}
       {showQR && (
         <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center relative shadow-2xl animate-fade-in-up">
@@ -347,12 +333,10 @@ export default function PreviewPage() {
             </div>
 
             <div className="card p-4 space-y-3">
-              {/* TOMBOL JPG (SELALU ADA) */}
               <button onClick={downloadJPG} disabled={!stripUrl || generating} className={`w-full flex items-center justify-center gap-2 py-4 rounded-full font-body font-medium text-base transition-all duration-300 ${stripUrl && !generating ? downloadedJPG ? 'bg-green-500 text-white' : 'bg-matcha-500 hover:bg-matcha-600 text-white shadow-matcha hover:-translate-y-0.5' : 'bg-gray-100 text-gray-300 cursor-not-allowed'}`}>
                 {downloadedJPG ? <><Check className="w-5 h-5" /> Saved Image!</> : <><Download className="w-5 h-5" /> Save Image</>}
               </button>
 
-              {/* TOMBOL VIDEO (MUNCUL JIKA FITUR LIVE PHOTO DINYALAKAN) */}
               {hasLivePhoto && (
                  <button onClick={downloadFramedVideo} disabled={isGeneratingVideo || generating} className={`w-full flex items-center justify-center gap-2 py-4 rounded-full font-body font-medium text-base transition-all duration-300 ${isGeneratingVideo ? 'bg-indigo-100 text-indigo-400' : downloadedVid ? 'bg-green-500 text-white' : 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-[0_4px_14px_0_rgba(99,102,241,0.39)] hover:-translate-y-0.5'}`}>
                    {isGeneratingVideo ? <><Loader2 className="w-5 h-5 animate-spin" /> Rendering Video...</> : downloadedVid ? <><Check className="w-5 h-5" /> Saved Video!</> : <><Video className="w-5 h-5" /> Save Video</>}
@@ -370,7 +354,8 @@ export default function PreviewPage() {
 
               <div className="h-px bg-gray-100 w-full my-2" />
 
-              <button onClick={() => { sessionStorage.removeItem('booth_photos'); router.push('/booth') }} className="btn-outline w-full justify-center py-3 rounded-full border-gray-200 hover:bg-gray-50 flex gap-2"><RotateCcw className="w-4 h-4" /> Retake All Photos</button>
+              <button onClick={() => { router.push('/booth') }} className="btn-outline w-full justify-center py-3 rounded-full border-gray-200 hover:bg-gray-50 flex gap-2"><RotateCcw className="w-4 h-4" /> Retake Photos</button>
+              <button onClick={() => { sessionStorage.clear(); router.push('/') }} className="w-full justify-center text-sm text-gray-400 hover:text-gray-600 flex gap-2 py-2"><Home className="w-4 h-4" /> Back to Home</button>
             </div>
           </div>
 
