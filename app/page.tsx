@@ -12,7 +12,7 @@ export default function HomePage() {
   const [frameCount, setFrameCount] = useState<number | null>(null)
   const [daysSince, setDaysSince] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
-  const EST_DATE = new Date('2025-02-09')
+  const EST_DATE = new Date('2026-04-21')
 
   useEffect(() => {
     setMounted(true)
@@ -53,40 +53,34 @@ export default function HomePage() {
         <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-12 items-center">
           {/* left copy */}
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white border border-line px-3 py-1.5 shadow-soft">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white border border-line px-3 py-1.5 shadow-soft animate-fade-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
               <span className="h-2 w-2 rounded-full bg-vanilla-600 animate-pulse" />
               <span className="font-mono text-[11px] tracking-[0.16em] uppercase text-muted">Est. Apr 21, 2026</span>
               {mounted && daysSince!==null && <span className="rounded-full bg-vanilla-100 border border-line px-2 py-0.5 font-mono text-[11px] text-ink">{daysSince}d</span>}
               {frameCount!==null && <span className="font-mono text-[11px] text-muted">· {frameCount} layouts</span>}
             </div>
 
-            <h1 className="mt-6 font-display text-[clamp(2.8rem,6vw,4.6rem)] font-light leading-[0.9] tracking-[-0.03em] text-ink">
+            <h1 className="mt-6 font-display text-[clamp(2.8rem,6vw,4.6rem)] font-light leading-[0.9] tracking-[-0.03em] text-ink animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               A photobooth
               <span className="block font-light italic text-vanilla-800">made for idaadarii.</span>
             </h1>
-            <p className="mt-5 max-w-[520px] font-body text-[16px] leading-7 text-muted">
+            <p className="mt-5 max-w-[520px] font-body text-[16px] leading-7 text-muted animate-fade-up" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
               Warm vanilla paper, hairline borders, quiet luxury. Pick a frame — 3 or 6 poses —
               pose with a 5s countdown, take it home as strip, live photo, or GIF.
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-3 animate-fade-up" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
               <button onClick={()=>router.push('/choose-layout')} className="btn-primary text-[15px] px-8">
                 <Camera className="w-4 h-4" /> Choose layout
               </button>
               <a href="#how" className="btn-outline text-sm">How it works</a>
             </div>
 
-            <div className="mt-7 flex items-center gap-3 font-mono text-[11px] tracking-widest uppercase text-muted/60">
-              <span className="inline-flex items-center gap-1.5"><span className="h-1 w-1 rounded-full bg-ink/40" /> Next.js 14</span>
-              <span className="h-3 w-px bg-line" />
-              <span>Supabase</span>
-              <span className="h-3 w-px bg-line" />
-              <span>Vanilla</span>
-            </div>
+
           </div>
 
           {/* right visual — layered strips editorial */}
-          <div className="relative lg:h-[520px] flex items-center justify-center">
+          <div className="relative lg:h-[520px] flex items-center justify-center animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'both' }}>
             <div className="absolute inset-0 -z-10 rounded-[32px] bg-gradient-to-br from-vanilla-100 via-white to-vanilla-50 border border-line hidden lg:block" />
             <div className="flex items-end gap-4 lg:gap-5">
               <div className="hidden sm:block w-[150px] lg:w-[168px] rotate-[-3deg] translate-y-2">

@@ -123,8 +123,8 @@ export default function ChooseLayoutPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filtered.map(frame => (
-                <button key={frame.id} onClick={()=>setSelectedId(frame.id)} className={`group text-left rounded-[20px] overflow-hidden border bg-white transition-all ${selectedId===frame.id ? 'border-ink shadow-medium ring-1 ring-ink/10' : 'border-line hover:border-vanilla-300 hover:shadow-soft'}`}>
+              {filtered.map((frame, idx) => (
+                <button key={frame.id} onClick={()=>setSelectedId(frame.id)} className={`group text-left rounded-[20px] overflow-hidden border bg-white transition-all animate-fade-up ${selectedId===frame.id ? 'border-ink shadow-medium ring-1 ring-ink/10' : 'border-line hover:border-vanilla-300 hover:shadow-soft'}`} style={{ animationDelay: `${0.05 * idx}s`, animationFillMode: 'both' }}>
                   <div className="relative bg-vanilla-50" style={{ aspectRatio:'2/3.3' }}>
                     {!imgErrors[frame.id] ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -157,7 +157,7 @@ export default function ChooseLayoutPage() {
         </section>
 
         {/* sticky detail */}
-        <aside className="lg:sticky lg:top-[80px] space-y-4">
+        <aside className="lg:sticky lg:top-[80px] space-y-4 animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
           <div className="card p-5">
             {!selected ? (
               <div className="py-10 text-center">

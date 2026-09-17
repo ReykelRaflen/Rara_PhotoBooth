@@ -68,13 +68,13 @@ export default function AdminPage() {
           </h1>
           <p className="mt-4 max-w-[420px] font-body text-[15px] leading-7 text-muted">
             Upload PNG transparan, edit metadata, toggle active, atur urutan. Semua
-            perubahan live ke Supabase — tanpa rebuild.
+            perubahan langsung tersinkronisasi ke cloud.
           </p>
           <div className="mt-8 grid grid-cols-3 gap-3 max-w-[420px]">
             {[
               ['PNG','Transparan best'],
               ['8MB','Max file'],
-              ['Live','Supabase'],
+              ['Live','Cloud Sync'],
             ].map(([a,b])=> (
               <div key={a} className="rounded-2xl bg-white border border-line p-3">
                 <p className="font-display text-sm font-medium text-ink">{a}</p>

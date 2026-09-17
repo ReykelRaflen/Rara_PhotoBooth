@@ -158,7 +158,7 @@ export default function AdminDashboard({ onLogout }: Props) {
         <nav className="mt-6 flex flex-col gap-2">
           <span className="h-9 w-9 rounded-xl bg-ink text-white flex items-center justify-center" title="Manage"><LayoutDashboard className="w-4 h-4" /></span>
           <a href="/" target="_blank" rel="noreferrer" className="h-9 w-9 rounded-xl bg-vanilla-100 border border-line flex items-center justify-center text-muted hover:text-ink" title="View site"><Eye className="w-4 h-4" /></a>
-          <a href="https://supabase.com" target="_blank" rel="noreferrer" className="h-9 w-9 rounded-xl bg-white border border-line flex items-center justify-center text-muted hover:text-ink" title="Supabase"><ExternalLink className="w-4 h-4" /></a>
+
         </nav>
         <div className="mt-auto flex flex-col items-center gap-3">
           <button onClick={onLogout} className="h-9 w-9 rounded-xl bg-white border border-line flex items-center justify-center text-muted hover:text-ink" title="Log out"><LogOut className="w-4 h-4" /></button>
@@ -173,7 +173,7 @@ export default function AdminDashboard({ onLogout }: Props) {
               <div className="lg:hidden h-8 w-8 rounded-xl bg-ink flex items-center justify-center shrink-0"><span className="font-display text-xs font-semibold text-white">i.</span></div>
               <div className="min-w-0">
                 <h1 className="font-display text-[18px] font-medium tracking-tight text-ink leading-none">Frame library</h1>
-                <p className="hidden sm:block font-mono text-[11px] tracking-widest uppercase text-muted">Vanilla editorial · live Supabase</p>
+                <p className="hidden sm:block font-mono text-[11px] tracking-widest uppercase text-muted">Vanilla editorial · cloud sync</p>
               </div>
               <span className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-white border border-line px-2.5 py-1 font-mono text-[11px] text-muted"><Sparkles className="w-3 h-3" /> Vanilla</span>
             </div>
