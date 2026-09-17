@@ -1,216 +1,168 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Camera, ArrowRight, Sparkles } from 'lucide-react'
-import { supabase, Frame } from '@/lib/supabase'
+import { Camera, ArrowRight, Sparkles, Grid3x3, Layers, Clock3 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
-// Placeholder photostrip images (grayscale placeholder strips)
-const STRIP_PLACEHOLDERS = [
-  { rotate: '-6deg', side: 'left',  delay: '0s' },
-  { rotate: '5deg',  side: 'right', delay: '0.3s' },
-]
-
-const MARQUEE_ITEMS = [
-  '✦ capture the moment',
-  '♡ cherish the magic',
-  '✦ relive the love',
-  '♡ pose & play',
-  '✦ made for idaadarii',
-  '♡ every click counts',
-]
+const MARQUEE = ['capture the moment','cherish the magic','relive the love','pose & play','made for idaadarii','every click counts']
 
 export default function HomePage() {
   const router = useRouter()
-  const [frames, setFrames] = useState<Frame[]>([])
-  const [frameCount, setFrameCount] = useState(0)
-  const [daysSince, setDaysSince] = useState(0)
+  const [frameCount, setFrameCount] = useState<number | null>(null)
+  const [daysSince, setDaysSince] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
-
-  // Established date — can be changed
   const EST_DATE = new Date('2025-02-09')
 
   useEffect(() => {
     setMounted(true)
-    // Calculate days since
-    const now = new Date()
-    const diff = Math.floor((now.getTime() - EST_DATE.getTime()) / (1000 * 60 * 60 * 24))
-    setDaysSince(diff)
-
-    // Fetch frame count
-    supabase
-      .from('frames')
-      .select('id', { count: 'exact' })
-      .eq('is_active', true)
-      .then(({ count }) => setFrameCount(count ?? 0))
+    setDaysSince(Math.floor((Date.now() - EST_DATE.getTime())/86400000))
+    supabase.from('frames').select('id', { count:'exact' }).eq('is_active', true).then(({count})=> setFrameCount(count ?? 0))
   }, [])
 
-  const handleStart = () => router.push('/choose-layout')
-
   return (
-    <main className="min-h-screen bg-cream relative overflow-hidden">
-      {/* ── Mesh background ── */}
-      <div className="absolute inset-0 -z-10 pointer-events-none">
-        <div className="absolute inset-0 bg-warm-mesh opacity-80" />
-        <div className="absolute top-0 left-0 w-full h-full"
-          style={{
-            background: `
-              radial-gradient(ellipse 70% 50% at 20% 10%, rgba(197,223,177,0.45) 0%, transparent 70%),
-              radial-gradient(ellipse 50% 60% at 80% 90%, rgba(242,168,184,0.25) 0%, transparent 60%),
-              radial-gradient(ellipse 60% 40% at 60% 40%, rgba(253,250,244,0.9) 0%, transparent 70%)
-            `
-          }}
-        />
-      </div>
-
-      {/* ── Top banner ── */}
-      <div className="w-full py-2 bg-matcha-500 text-center overflow-hidden">
-        <div className="marquee-track text-xs font-body font-medium text-white tracking-widest uppercase">
-          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-            <span key={i} className="px-8">{item}</span>
-          ))}
+    <main className="min-h-screen bg-vanilla-50">
+      {/* ticker — hairline, not matcha band */}
+      <div className="border-y border-line bg-white/80 backdrop-blur overflow-hidden">
+        <div className="marquee-track py-2.5 text-[11px] font-mono tracking-[0.18em] uppercase text-muted">
+          {[...MARQUEE, ...MARQUEE].map((t,i)=> <span key={i} className="px-7 whitespace-nowrap">✦ {t}</span>)}
         </div>
       </div>
 
-      {/* ── Navbar ── */}
-      <nav className="glass border-b border-white/60 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="font-display text-2xl font-semibold text-matcha-700 tracking-tight">
-            idaadarii<span className="text-matcha-400">.</span>
-          </span>
-          <div className="hidden md:flex items-center gap-8">
-            {['home', 'layouts', 'gallery'].map(item => (
-              <a
-                key={item}
-                href={item === 'home' ? '/' : item === 'layouts' ? '/choose-layout' : '#'}
-                className="font-body text-sm text-gray-500 hover:text-matcha-600 transition-colors capitalize tracking-wide"
-              >
-                {item}
-              </a>
-            ))}
-            <a
-              href="/choose-layout"
-              className="font-body text-sm font-medium text-matcha-600 hover:text-matcha-700 transition-colors tracking-wide"
-            >
-              choose layout →
-            </a>
+      <nav className="glass sticky top-0 z-40">
+        <div className="mx-auto max-w-[1280px] px-6 lg:px-8 h-[64px] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-ink flex items-center justify-center">
+              <span className="font-display text-sm font-semibold text-white tracking-tight">i.</span>
+            </div>
+            <span className="font-display text-[18px] font-semibold tracking-tight text-ink">idaadarii<span className="text-vanilla-600">.</span></span>
+            <span className="hidden sm:inline-flex ml-2 rounded-full bg-vanilla-100 border border-line px-2.5 py-1 font-mono text-[10px] tracking-widest uppercase text-muted">Vanilla editorial</span>
           </div>
-          <button
-            onClick={handleStart}
-            className="btn-primary text-sm py-2.5 px-5"
-          >
-            <Camera className="w-4 h-4" />
-            Start
+          <div className="hidden md:flex items-center gap-1 rounded-full bg-white border border-line p-1">
+            <span className="rounded-full bg-ink text-white px-4 py-1.5 text-xs font-medium">Home</span>
+            <a href="/choose-layout" className="px-4 py-1.5 text-xs font-medium text-muted hover:text-ink">Layouts</a>
+          </div>
+          <button onClick={()=>router.push('/choose-layout')} className="btn-primary text-sm !py-2.5">
+            Start <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <section className="relative min-h-[calc(100vh-112px)] flex items-center justify-center px-6">
+      {/* HERO — asymmetric editorial, not centered blob */}
+      <section className="mx-auto max-w-[1280px] px-6 lg:px-8 py-10 lg:py-16">
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-12 items-center">
+          {/* left copy */}
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white border border-line px-3 py-1.5 shadow-soft">
+              <span className="h-2 w-2 rounded-full bg-vanilla-600 animate-pulse" />
+              <span className="font-mono text-[11px] tracking-[0.16em] uppercase text-muted">Est. Apr 21, 2026</span>
+              {mounted && daysSince!==null && <span className="rounded-full bg-vanilla-100 border border-line px-2 py-0.5 font-mono text-[11px] text-ink">{daysSince}d</span>}
+              {frameCount!==null && <span className="font-mono text-[11px] text-muted">· {frameCount} layouts</span>}
+            </div>
 
-        {/* Floating strip LEFT */}
-        <div
-          className="absolute left-8 lg:left-24 top-1/2 -translate-y-1/2 w-28 lg:w-36 animate-float-slow hidden sm:block"
-          style={{ animationDelay: '0s' }}
-        >
-          <PlaceholderStrip count={4} rotate="-6deg" />
-        </div>
-
-        {/* Floating strip RIGHT */}
-        <div
-          className="absolute right-8 lg:right-24 top-1/2 -translate-y-1/2 w-28 lg:w-36 animate-float-med hidden sm:block"
-          style={{ animationDelay: '0.8s' }}
-        >
-          <PlaceholderStrip count={4} rotate="5deg" />
-        </div>
-
-        {/* Center content */}
-        <div className="text-center max-w-2xl mx-auto stagger">
-          {/* Est. pill */}
-          <div className="inline-flex items-center gap-3 glass border border-matcha-200/60 rounded-full px-5 py-2.5 mb-8 shadow-soft">
-            <span className="text-rose text-lg">★</span>
-            <span className="font-mono text-xs font-medium text-matcha-600 tracking-widest uppercase">
-              Est. April 21, 2026
-            </span>
-            {mounted && (
-              <span className="font-mono text-xs text-matcha-500 bg-matcha-50 px-2 py-0.5 rounded-full">
-                {daysSince}d
-              </span>
-            )}
-          </div>
-
-          {/* Headline */}
-          <h1 className="font-display text-[clamp(3.5rem,10vw,7rem)] font-light leading-none text-gray-800 tracking-tight mb-2">
-            idaadarii
-          </h1>
-          <h2 className="font-display text-[clamp(2rem,6vw,4rem)] font-light italic text-matcha-500 leading-none mb-8">
-            photobooth
-          </h2>
-
-          {/* Tagline */}
-          <p className="font-body text-gray-500 text-base lg:text-lg leading-relaxed mb-10 max-w-sm mx-auto">
-            Capture the moment, cherish the magic,<br />
-            <span className="text-matcha-500 italic font-light">relive the love.</span>
-          </p>
-
-          {/* CTA */}
-          <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
-            <button onClick={handleStart} className="btn-primary text-base px-10 py-4 group">
-              <Camera className="w-5 h-5" />
-              START
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </button>
-            <a href="/choose-layout" className="btn-outline text-sm">
-              choose layout
-            </a>
-          </div>
-
-          {/* Stats */}
-          {frameCount > 0 && (
-            <p className="font-body text-xs text-matcha-400 mt-8">
-              {frameCount} beautiful frame{frameCount !== 1 ? 's' : ''} available
+            <h1 className="mt-6 font-display text-[clamp(2.8rem,6vw,4.6rem)] font-light leading-[0.9] tracking-[-0.03em] text-ink">
+              A photobooth
+              <span className="block font-light italic text-vanilla-800">made for idaadarii.</span>
+            </h1>
+            <p className="mt-5 max-w-[520px] font-body text-[16px] leading-7 text-muted">
+              Warm vanilla paper, hairline borders, quiet luxury. Pick a frame — 3 or 6 poses —
+              pose with a 5s countdown, take it home as strip, live photo, or GIF.
             </p>
-          )}
+
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <button onClick={()=>router.push('/choose-layout')} className="btn-primary text-[15px] px-8">
+                <Camera className="w-4 h-4" /> Choose layout
+              </button>
+              <a href="#how" className="btn-outline text-sm">How it works</a>
+            </div>
+
+            <div className="mt-7 flex items-center gap-3 font-mono text-[11px] tracking-widest uppercase text-muted/60">
+              <span className="inline-flex items-center gap-1.5"><span className="h-1 w-1 rounded-full bg-ink/40" /> Next.js 14</span>
+              <span className="h-3 w-px bg-line" />
+              <span>Supabase</span>
+              <span className="h-3 w-px bg-line" />
+              <span>Vanilla</span>
+            </div>
+          </div>
+
+          {/* right visual — layered strips editorial */}
+          <div className="relative lg:h-[520px] flex items-center justify-center">
+            <div className="absolute inset-0 -z-10 rounded-[32px] bg-gradient-to-br from-vanilla-100 via-white to-vanilla-50 border border-line hidden lg:block" />
+            <div className="flex items-end gap-4 lg:gap-5">
+              <div className="hidden sm:block w-[150px] lg:w-[168px] rotate-[-3deg] translate-y-2">
+                <Strip tone="paper" count={4} label="Strip A · vanilla" />
+              </div>
+              <div className="w-[168px] lg:w-[190px] rotate-[1.2deg] shadow-medium">
+                <Strip tone="vanilla" count={4} label="Strip B · warm" featured />
+              </div>
+              <div className="hidden md:block w-[148px] lg:w-[164px] rotate-[3deg] -translate-y-1 opacity-95">
+                <Strip tone="ink" count={4} label="Strip C · ink" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* proof / how */}
+        <div id="how" className="mt-12 grid md:grid-cols-3 gap-4">
+          {[
+            { k:'01', title:'Pick a frame', desc:'Curated vanilla layouts — 3 or 6 poses. Tap to preview.', icon: Layers },
+            { k:'02', title:'Pose — 5s countdown', desc:'Live camera, filters, mirror & live photo (3→0s).', icon: Clock3 },
+            { k:'03', title:'Take it home', desc:'Save as strip, video, or GIF. QR share included.', icon: Grid3x3 },
+          ].map(f=> (
+            <div key={f.k} className="rounded-[20px] bg-white border border-line p-5 flex gap-4">
+              <div className="h-10 w-10 rounded-xl bg-vanilla-100 border border-line flex items-center justify-center shrink-0">
+                <f.icon className="w-4 h-4 text-ink" />
+              </div>
+              <div>
+                <p className="font-mono text-[11px] tracking-widest uppercase text-muted">{f.k}</p>
+                <p className="font-display text-[15px] font-medium text-ink mt-0.5">{f.title}</p>
+                <p className="font-body text-sm leading-6 text-muted mt-1">{f.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 rounded-[20px] bg-ink text-white p-6 lg:p-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-vanilla-200" />
+            </div>
+            <div>
+              <p className="font-display text-[15px] font-medium">Ready to shoot?</p>
+              <p className="font-body text-sm text-white/60">Choose a layout — your strip is one tap away.</p>
+            </div>
+          </div>
+          <button onClick={()=>router.push('/choose-layout')} className="rounded-full bg-white text-ink px-6 py-3 text-sm font-medium hover:bg-vanilla-50 inline-flex items-center gap-2">
+            Browse layouts <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </section>
 
-      {/* ── Bottom ornament ── */}
-      <div className="pb-8 text-center">
-        <p className="font-display italic text-matcha-400 text-sm">
-          made for idaadarii
-        </p>
-      </div>
-
-      {/* ── Admin link ── */}
-      <a
-        href="/admin"
-        className="fixed bottom-5 right-5 z-50 glass text-xs font-body text-matcha-500 hover:text-matcha-700
-                   px-3 py-2 rounded-full border border-matcha-200 shadow-soft transition-colors"
-      >
-        ⚙ admin
-      </a>
+      <footer className="border-t border-line bg-white/70">
+        <div className="mx-auto max-w-[1280px] px-6 lg:px-8 py-4 flex items-center justify-between font-mono text-xs text-muted">
+          <span>© {new Date().getFullYear()} idaadarii</span>
+          <span className="tracking-widest uppercase hidden sm:block">Every click is a memory — vanilla edition</span>
+        </div>
+      </footer>
     </main>
   )
 }
 
-// ── Placeholder photo strip component ──
-function PlaceholderStrip({ count, rotate }: { count: number; rotate: string }) {
-  const colors = ['#d1e8c4', '#c5dfb1', '#b8d49e', '#aac98c']
+function Strip({ count, tone, label, featured }: { count:number; tone:'paper'|'vanilla'|'ink'; label:string; featured?:boolean }) {
+  const bg = tone==='paper' ? 'bg-white' : tone==='vanilla' ? 'bg-vanilla-100' : 'bg-ink text-white'
+  const border = tone==='ink' ? 'border-white/10' : 'border-line'
   return (
-    <div
-      className="rounded-xl overflow-hidden strip-shadow bg-white p-2 pb-6 space-y-1.5"
-      style={{ transform: `rotate(${rotate})` }}
-    >
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className="w-full rounded-lg overflow-hidden"
-          style={{ aspectRatio: '4/3', background: colors[i % colors.length] }}
-        />
-      ))}
-      <div className="pt-2 text-center">
-        <p className="font-mono text-[8px] text-matcha-400 tracking-widest">IDAADARII</p>
+    <div className={`rounded-[20px] border ${border} ${bg} p-3 shadow-soft strip-shadow ${featured ? 'ring-1 ring-ink/10' : ''}`}>
+      <div className="space-y-2">
+        {Array.from({length: count}).map((_,i)=> (
+          <div key={i} className={`aspect-[4/3] rounded-xl border overflow-hidden relative ${tone==='ink' ? 'bg-white/10 border-white/10' : 'bg-gradient-to-br from-vanilla-100 to-white border-line'}`}>
+            <div className={`absolute inset-0 ${tone==='ink' ? 'bg-white/5' : 'opacity-40'}`} style={tone!=='ink' ? { background: 'linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.8) 50%, transparent 60%)'} : undefined} />
+            <div className={`absolute bottom-1.5 left-1.5 right-1.5 h-1 rounded-full ${tone==='ink' ? 'bg-white/30' : 'bg-white/80 border border-line'}`} />
+          </div>
+        ))}
       </div>
+      <div className={`mt-3 h-px ${tone==='ink' ? 'bg-white/10' : 'bg-line'}`} />
+      <p className={`mt-2 text-center font-mono text-[9px] tracking-[0.16em] uppercase ${tone==='ink' ? 'text-white/60' : 'text-muted'}`}>{label}</p>
     </div>
   )
 }

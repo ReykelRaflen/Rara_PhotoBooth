@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase'
+import { createServiceClient } from '@/lib/supabase-admin'
+import { isAdmin, unauthorized } from '@/lib/admin-auth'
 
-// GET /api/frames — list all frames (admin)
 export async function GET() {
+  if (!isAdmin()) return unauthorized()
   try {
     const supabase = createServiceClient()
     const { data, error } = await supabase
@@ -17,9 +18,9 @@ export async function GET() {
   }
 }
 
-// DELETE /api/frames?id=xxx — delete frame + storage file
 export async function DELETE(req: NextRequest) {
-  const id          = req.nextUrl.searchParams.get('id')
+  if (!isAdmin()) return unauthorized()
+  const id = req.nextUrl.searchParams.get('id')
   const storagePath = req.nextUrl.searchParams.get('path')
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
@@ -36,18 +37,23 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
-// PATCH /api/frames — update frame metadata
 export async function PATCH(req: NextRequest) {
+  if (!isAdmin()) return unauthorized()
   try {
     const body = await req.json()
-    const { id, ...updates } = body
+    const { id, name, description, type, is_active, sort_order, tags } = body
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    if (typeof name === 'string') updates.name = name
+    if (description !== undefined) updates.description = description
+    if (type === '3' || type === '6') updates.type = type
+    if (typeof is_active === 'boolean') updates.is_active = is_active
+    if (typeof sort_order === 'number' && Number.isFinite(sort_order)) updates.sort_order = sort_order
+    if (Array.isArray(tags)) updates.tags = tags.filter((t: unknown) => typeof t === 'string')
+
     const supabase = createServiceClient()
-    const { error } = await supabase
-      .from('frames')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
+    const { error } = await supabase.from('frames').update(updates).eq('id', id)
     if (error) throw error
     return NextResponse.json({ success: true })
   } catch (e: any) {

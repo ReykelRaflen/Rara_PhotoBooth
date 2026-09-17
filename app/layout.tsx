@@ -23,17 +23,17 @@ const dmMono = DM_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Idaadarii's Photobooth 🌿",
-  description: 'Capture the moment, cherish the magic — a photobooth made with love for Idaadarii.',
+  title: "Idaadarii — Photobooth",
+  description: 'Vanilla editorial photobooth — capture the moment, cherish the magic.',
   openGraph: {
-    title: "Idaadarii's Photobooth",
+    title: "Idaadarii — Photobooth",
     description: 'Capture the moment, cherish the magic.',
     type: 'website',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#7aaf56',
+  themeColor: '#FFFCF5',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

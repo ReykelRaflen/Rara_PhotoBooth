@@ -33,6 +33,7 @@ create policy "Public can read active frames"
 -- Service role bisa semua (untuk admin)
 create policy "Service role full access"
   on public.frames for all
+  to service_role
   using (true)
   with check (true);
 
@@ -52,10 +53,12 @@ create policy "Public read frames storage"
 
 create policy "Service role upload frames"
   on storage.objects for insert
+  to service_role
   with check (bucket_id = 'frames');
 
 create policy "Service role delete frames"
   on storage.objects for delete
+  to service_role
   using (bucket_id = 'frames');
 
 -- 6. Auto-update updated_at

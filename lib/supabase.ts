@@ -33,39 +33,4 @@ export interface Frame {
 // ────────────────────────────────────────────────
 // DB helpers
 // ────────────────────────────────────────────────
-export async function getActiveFrames(): Promise<Frame[]> {
-  const { data, error } = await supabase
-    .from('frames')
-    .select('*')
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true })
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data ?? []
-}
 
-export async function getAllFrames(): Promise<Frame[]> {
-  const { data, error } = await supabase
-    .from('frames')
-    .select('*')
-    .order('sort_order', { ascending: true })
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return data ?? []
-}
-
-export async function deleteFrame(id: string, storagePath: string) {
-  // Remove from storage first
-  await supabase.storage.from('frames').remove([storagePath])
-  // Then delete record
-  const { error } = await supabase.from('frames').delete().eq('id', id)
-  if (error) throw error
-}
-
-export async function updateFrame(id: string, updates: Partial<Frame>) {
-  const { error } = await supabase
-    .from('frames')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
-  if (error) throw error
-}
